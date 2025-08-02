@@ -1,5 +1,6 @@
 package org.arc.chat_backend.auth;
 
+import org.arc.chat_backend.auth.dto.LoginRequest;
 import org.arc.chat_backend.auth.dto.RegisterRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,5 +26,10 @@ public class AuthController {
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        String token = authService.login(request);
+        return ResponseEntity.ok(token);
     }
 }

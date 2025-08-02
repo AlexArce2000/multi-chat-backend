@@ -1,8 +1,14 @@
 package org.arc.chat_backend.auth;
 
+import org.arc.chat_backend.auth.dto.LoginRequest;
 import org.arc.chat_backend.auth.dto.RegisterRequest;
+import org.arc.chat_backend.security.JwtUtil;
 import org.arc.chat_backend.user.User;
 import org.arc.chat_backend.user.UserRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,11 +17,16 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
     // Inyección de dependencias vía constructor
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, UserDetailsService userDetailsService, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.jwtUtil = jwtUtil;
     }
 
     public void register(RegisterRequest request) {
@@ -31,4 +42,17 @@ public class AuthService {
 
         userRepository.save(user);
     }
+    public String login(LoginRequest request) {
+        // 1. Autenticar al usuario con Spring Security
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+
+        // 2. Si la autenticación es exitosa, cargar los detalles del usuario
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+
+        // 3. Generar y devolver el token JWT
+        return jwtUtil.generateToken(userDetails);
+    }
+
 }
