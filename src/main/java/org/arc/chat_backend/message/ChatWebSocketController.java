@@ -1,8 +1,7 @@
 package org.arc.chat_backend.message;
-
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
@@ -15,22 +14,16 @@ public class ChatWebSocketController {
         this.chatMessageRepository = chatMessageRepository;
     }
 
-    @MessageMapping("/chat.sendMessage") // El cliente envía mensajes a /app/chat.sendMessage
-    @SendTo("/topic/public")             // El valor de retorno se retransmite a /topic/public
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
-        // Guardamos el mensaje en MongoDB
+    @MessageMapping("/chat.sendMessage/{roomId}")
+    public void sendMessage(@DestinationVariable String roomId, @Payload ChatMessage chatMessage) {
+        chatMessage.setSalaId(roomId);
         chatMessageRepository.save(chatMessage);
-        return chatMessage;
     }
 
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public ChatMessage addUser(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-        // Añade el nombre de usuario a la sesión de WebSocket
+    @MessageMapping("/chat.addUser/{roomId}")
+    public void addUser(@DestinationVariable String roomId, @Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
         headerAccessor.getSessionAttributes().put("username", chatMessage.getRemitente());
-
-        // Guardamos el mensaje de "unión" en MongoDB
+        chatMessage.setSalaId(roomId);
         chatMessageRepository.save(chatMessage);
-        return chatMessage;
     }
 }
