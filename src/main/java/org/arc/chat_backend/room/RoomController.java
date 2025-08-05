@@ -31,4 +31,17 @@ public class RoomController {
     public ResponseEntity<List<Room>> getPublicRooms() {
         return ResponseEntity.ok(roomService.getPublicRooms());
     }
+    @PostMapping("/{roomId}/join")
+    public ResponseEntity<String> joinRoom(@PathVariable String roomId,
+                                           @RequestBody(required = false) Map<String, String> payload,
+                                           Authentication authentication) {
+        try {
+            String password = (payload != null) ? payload.get("password") : null;
+            roomService.joinRoom(roomId, authentication.getName(), password);
+            return ResponseEntity.ok("Te has unido a la sala exitosamente.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }
