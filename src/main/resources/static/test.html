@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STOMP WebSocket</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+  <h1>WebSocket Chat con STOMP.js s</h1>
+  <script>
+    // Crear una conexión usando SockJS y STOMP
+    const socket = new SockJS('http://localhost:8080/ws');  // Asegúrate de que esta URL es correcta
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect(
+      { Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTc1NDU0MDU0NiwiZXhwIjoxNzU0NTQ0MTQ2fQ.7pl_r4PkUFfN9TAg4ALJBnRQ72wFYq9fPpSpjfU1oYY' },  // Tu JWT token aquí
+      function (frame) {
+        console.log('Conectado: ' + frame);
+
+        // Suscribirse a un destino para recibir mensajes
+        stompClient.subscribe('/topic/rooms/ea45c6a8-f041-482a-8657-3f033da3cadf', function (messageOutput) {
+          console.log('Mensaje recibido: ' + messageOutput.body);
+        });
+
+        // Enviar un mensaje STOMP
+        stompClient.send(
+          '/app/chat.sendMessage/ea45c6a8-f041-482a-8657-3f033da3cadf',  // Destino
+          { 'content-type': 'application/json' },  // Cabecera
+          JSON.stringify({
+            remitente: 'testuser',
+            contenido: 'pruebas 2',
+          })
+        );
+      },
+      function (error) {
+        console.error('Error al conectar: ' + error);
+      }
+    );
+  </script>
+</body>
+</html>
