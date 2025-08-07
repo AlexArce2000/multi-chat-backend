@@ -34,17 +34,15 @@ public class RoomService {
         room.setName(name);
         room.setPublic(isPublic);
         room.setCreator(creator);
-        Room savedRoom = roomRepository.save(room);
-
         if (!isPublic && password != null && !password.isEmpty()) {
             room.setPassword(passwordEncoder.encode(password));
         }
+        Room savedRoom = roomRepository.save(room);
         RoomMembership membership = new RoomMembership();
         membership.setUser(creator);
         membership.setRoom(savedRoom);
         membershipRepository.save(membership);
-
-        return roomRepository.save(room);
+        return savedRoom;
     }
     @Transactional
     public void joinRoom(String roomId, String username, String password) {
@@ -72,5 +70,16 @@ public class RoomService {
     public List<Room> getPublicRooms() {
         return roomRepository.findByIsPublic(true);
     }
+    public boolean isUserMemberOfRoom(String username, String roomId) {
+        // Busca al usuario por su nombre
+        User user = userRepository.findByUsername(username).orElse(null);
 
+        // Si el usuario no existe, no puede ser miembro
+        if (user == null) {
+            return false;
+        }
+        // Busca en la tabla de membresías una entrada que coincida con el ID del usuario y el ID de la sala.
+        // .isPresent() devuelve true si encuentra una, y false si no.
+        return membershipRepository.findByUser_IdAndRoom_Id(user.getId(), roomId).isPresent();
+    }
 }
