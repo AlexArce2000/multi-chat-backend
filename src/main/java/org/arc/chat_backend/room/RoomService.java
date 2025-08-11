@@ -67,6 +67,7 @@ public class RoomService {
         newMembership.setRoom(room);
         membershipRepository.save(newMembership);
     }
+    @Transactional(readOnly = true)
     public List<Room> getPublicRooms() {
         return roomRepository.findByIsPublic(true);
     }
