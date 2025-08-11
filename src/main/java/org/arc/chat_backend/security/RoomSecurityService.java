@@ -14,8 +14,9 @@ public class RoomSecurityService {
 
 
     public boolean isMember(String roomId, String username) {
-        if (roomId == null || username == null) {
-            return false;
+        if (roomId == null || username == null) return false;
+        if (roomService.isRoomPublic(roomId)) {
+            return true;
         }
         return roomService.isUserMemberOfRoom(username, roomId);
     }
